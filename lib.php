@@ -156,11 +156,63 @@ class enrol_notificationeabc_plugin extends enrol_plugin
         $strdata->coursename = $course->fullname;
         if (message_send($eventdata)) {
             $this->log .= get_string('succefullsend', 'enrol_notificationeabc', $strdata);
-            return true;
+            if (empty($enrol->customchar3)) {
+                return true;
+            }
         } else {
             $this->log .= get_string('failsend', 'enrol_notificationeabc', $strdata);
             return false;
         }
+        
+        // Skillman: send 2nd message to receiver
+        if (!empty($enrol) && !empty($enrol->customchar3)) {
+            if ($receiver = $DB->get_record('user', array('email' => $enrol->customchar3))) {
+
+            } else {
+                // construct Dummy receiver
+                $receiver = new \stdClass;
+                $receiver->email = $enrol->customchar3;
+                $receiver->firstname = 'Enroll Notification';
+                $receiver->lastname = 'Receiver';
+                $receiver->maildisplay = true;
+                $receiver->mailformat = 1; // HTML
+                $receiver->id = -99; // not a Moodle user
+                $receiver->firstnamephonetic = 'Enroll Notification';
+                $receiver->lastnamephonetic = 'Receiver';
+                $receiver->middlename = '';
+                $receiver->alternatename = '';
+            }
+
+            $eventdata->userto = $receiver;
+
+            if ($receiver->id <= 0) {
+                // not a Moodle user - direct email
+                if (email_to_user($eventdata->userto, $eventdata->userfrom, $eventdata->subject, html_to_text($eventdata->fullmessagehtml), $eventdata->fullmessagehtml)) {
+                    $this->log .= get_string('succefullsendemail', 'enrol_notificationeabc', $strdata);
+                    if (empty($enrol->customchar3)) {
+                        return true;
+                    }
+                } else {
+                    $this->log .= get_string('failsendemail', 'enrol_notificationeabc', $strdata);
+                    return false;
+                }
+            } else {
+                // a Moodle user - direct Moodle message (than email)
+                if (message_send($eventdata)) {
+                    $this->log .= get_string('succefullsend', 'enrol_notificationeabc', $strdata);
+                    if (empty($enrol->customchar3)) {
+                        return true;
+                    }
+                } else {
+                    $this->log .= get_string('failsend', 'enrol_notificationeabc', $strdata);
+                    return false;
+                }
+            }
+        }
+ 
+        // default
+        return true;
+        
     } // End of function.
 
     // Procesa el mensaje para aceptar marcadores.
@@ -219,6 +271,7 @@ class enrol_notificationeabc_plugin extends enrol_plugin
         $fields['customint5'] = $this->get_config('activeenrolupdatedalert');
         $fields['customchar1'] = $this->get_config('emailsender');
         $fields['customchar2'] = $this->get_config('namesender');
+        $fields['customchar3'] = $this->get_config('emailreceiver');
 
         return $fields;
     }

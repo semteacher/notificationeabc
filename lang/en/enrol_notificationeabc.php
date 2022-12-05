@@ -85,3 +85,9 @@ $string['updatedenrolmessage_help'] = 'Personalize the message that users will c
 $string['updatedenrolmessagedefault'] = 'Your enrolment from {$a->fullname} has been updated ({$a->url})';
 $string['succefullsend'] = 'The user {$a->username} has been notified about his enrollment in the {$a->coursename} course'."\n";
 $string['failsend'] = 'WARNING: it has no been able to notify the {$a->username} user about his enrollment in the {$a->coursename} course'."\n";
+
+//Skillman
+$string['emailreceiver'] = 'Email receiver ';
+$string['emailreceiver_help'] = 'Staff member(s) who have to be informed about changes in enrollments ';
+$string['succefullsendemail'] = 'The user {$a->username} has been emailed about enrollment changes in the {$a->coursename} course'."\n";
+$string['failsendemail'] = 'WARNING: it has no been able to email the {$a->username} user about enrollment changes in the {$a->coursename} course'."\n";

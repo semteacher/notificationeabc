@@ -88,6 +88,11 @@ class enrol_notificationeabc_edit_form extends moodleform
         $mform->addHelpButton('customchar2', 'namesender', 'enrol_notificationeabc');
         $mform->setType('customchar2', PARAM_RAW);
 
+        // Skillman: course Email receiver
+        $mform->addElement('text', 'customchar3', get_string('emailreceiver', 'enrol_notificationeabc'));
+        $mform->addHelpButton('customchar3', 'emailreceiver', 'enrol_notificationeabc');
+        $mform->setType('customchar3', PARAM_RAW);
+
         $this->add_action_buttons(true, ($instance->id ? null : get_string('addinstance', 'enrol')));
 
         if (!empty($instance->courseid)) {

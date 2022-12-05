@@ -112,4 +112,10 @@ if ($ADMIN->fulltree) {
         get_string('namesender_help', 'enrol_notificationeabc'),
         '')
     );
+    $settings->add(new admin_setting_configtext(
+        'enrol_notificationeabc/emailreceiver',
+        get_string('emailreceiver', 'enrol_notificationeabc'),
+        get_string('emailreceiver_help', 'enrol_notificationeabc'),
+        '')
+    );
 }
