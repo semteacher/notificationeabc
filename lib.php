@@ -147,7 +147,7 @@ class enrol_notificationeabc_plugin extends enrol_plugin
         $eventdata->userfrom = $sender;
         $eventdata->userto = $user->id;
         $eventdata->subject = get_string('subject', 'enrol_notificationeabc');
-        $eventdata->fullmessage = '';
+        $eventdata->fullmessage = html_to_text($mensaje);
         $eventdata->fullmessageformat = FORMAT_HTML;
         $eventdata->fullmessagehtml = $mensaje;
         $eventdata->smallmessage = '';
@@ -195,7 +195,7 @@ class enrol_notificationeabc_plugin extends enrol_plugin
                 $strdata->username = $receiver->email;
                 $strdata->coursename = $course->fullname;
 
-                if ($receiver->id <= 0) {
+                //if ($receiver->id <= 0) {
                     // not a Moodle user - direct email
                     if (email_to_user($receiver, $eventdata->userfrom, $eventdata->subject, html_to_text($eventdata->fullmessagehtml), $eventdata->fullmessagehtml)) {
                         $this->log .= get_string('succefullsendemail', 'enrol_notificationeabc', $strdata);
@@ -204,16 +204,16 @@ class enrol_notificationeabc_plugin extends enrol_plugin
                         $this->log .= get_string('failsendemail', 'enrol_notificationeabc', $strdata);
                         $res = false;
                     }
-                } else {
+                //} else {
                     // a Moodle user - direct Moodle message (than email)
-                    if (message_send($eventdata)) {
-                        $this->log .= get_string('succefullsend', 'enrol_notificationeabc', $strdata);
-                        $res = true;
-                    } else {
-                        $this->log .= get_string('failsend', 'enrol_notificationeabc', $strdata);
-                        $res = false;
-                    }
-                }
+                //    if (message_send($eventdata)) {
+                //        $this->log .= get_string('succefullsend', 'enrol_notificationeabc', $strdata);
+                //        $res = true;
+                //    } else {
+                //        $this->log .= get_string('failsend', 'enrol_notificationeabc', $strdata);
+                //        $res = false;
+                //    }
+                //}
             }
         }
  
