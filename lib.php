@@ -166,46 +166,50 @@ class enrol_notificationeabc_plugin extends enrol_plugin
         
         // Skillman: send 2nd message to receiver
         if (!empty($enrol) && !empty($enrol->customchar3)) {
-            if ($receiver = $DB->get_record('user', array('email' => $enrol->customchar3))) {
-
+            if (strpos($enrol->customchar3, ',')) {
+                $receivers_emails = explode(',', $data->customchar3);
             } else {
-                // construct Dummy receiver
-                $receiver = new \stdClass;
-                $receiver->email = $enrol->customchar3;
-                $receiver->firstname = 'Enroll Notification';
-                $receiver->lastname = 'Receiver';
-                $receiver->maildisplay = true;
-                $receiver->mailformat = 1; // HTML
-                $receiver->id = -99; // not a Moodle user
-                $receiver->firstnamephonetic = 'Enroll Notification';
-                $receiver->lastnamephonetic = 'Receiver';
-                $receiver->middlename = '';
-                $receiver->alternatename = '';
+                $receivers_emails = array($enrol->customchar3);
             }
+            foreach ($receivers_emails as $receivers_email) {
+                // get Moodle user
+                $receiver = $DB->get_record('user', array('email' => $receivers_email)); 
 
-            $eventdata->userto = $receiver;
-
-            if ($receiver->id <= 0) {
-                // not a Moodle user - direct email
-                if (email_to_user($eventdata->userto, $eventdata->userfrom, $eventdata->subject, html_to_text($eventdata->fullmessagehtml), $eventdata->fullmessagehtml)) {
-                    $this->log .= get_string('succefullsendemail', 'enrol_notificationeabc', $strdata);
-                    if (empty($enrol->customchar3)) {
-                        return true;
-                    }
-                } else {
-                    $this->log .= get_string('failsendemail', 'enrol_notificationeabc', $strdata);
-                    return false;
+                if (empty($receiver)) {
+                    // construct Dummy receiver
+                    $receiver = new \stdClass;
+                    $receiver->email = $receivers_email;
+                    $receiver->firstname = 'Enroll Notification';
+                    $receiver->lastname = 'Receiver';
+                    $receiver->maildisplay = true;
+                    $receiver->mailformat = 1; // HTML
+                    $receiver->id = -99; // not a Moodle user
+                    $receiver->firstnamephonetic = 'Enroll Notification';
+                    $receiver->lastnamephonetic = 'Receiver';
+                    $receiver->middlename = '';
+                    $receiver->alternatename = '';
                 }
-            } else {
-                // a Moodle user - direct Moodle message (than email)
-                if (message_send($eventdata)) {
-                    $this->log .= get_string('succefullsend', 'enrol_notificationeabc', $strdata);
-                    if (empty($enrol->customchar3)) {
+
+                $eventdata->userto = $receiver;
+
+                if ($receiver->id <= 0) {
+                    // not a Moodle user - direct email
+                    if (email_to_user($eventdata->userto, $eventdata->userfrom, $eventdata->subject, html_to_text($eventdata->fullmessagehtml), $eventdata->fullmessagehtml)) {
+                        $this->log .= get_string('succefullsendemail', 'enrol_notificationeabc', $strdata);
                         return true;
+                    } else {
+                        $this->log .= get_string('failsendemail', 'enrol_notificationeabc', $strdata);
+                        return false;
                     }
                 } else {
-                    $this->log .= get_string('failsend', 'enrol_notificationeabc', $strdata);
-                    return false;
+                    // a Moodle user - direct Moodle message (than email)
+                    if (message_send($eventdata)) {
+                        $this->log .= get_string('succefullsend', 'enrol_notificationeabc', $strdata);
+                        return true;
+                    } else {
+                        $this->log .= get_string('failsend', 'enrol_notificationeabc', $strdata);
+                        return false;
+                    }
                 }
             }
         }

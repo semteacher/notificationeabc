@@ -111,6 +111,7 @@ class enrol_notificationeabc_edit_form extends moodleform
             $mform->setDefault('customtext3', array('text' => $instance->customtext3));
             $mform->setDefault('customchar1', $instance->customchar1);
             $mform->setDefault('customchar2', $instance->customchar2);
+            $mform->setDefault('customchar3', $instance->customchar3);
             $mform->setDefault('customint1', $instance->customint1);
             $mform->setDefault('customint2', $instance->customint2);
             $mform->setDefault('customint3', $instance->customint3);
