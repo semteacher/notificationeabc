@@ -136,7 +136,7 @@ class enrol_notificationeabc_plugin extends enrol_plugin
         } else {
             $sender->firstname = $soporte->firstname;
         }
-
+        $res = true;
         $sender->lastname = $soporte->lastname;
 
         $eventdata = new \core\message\message();
@@ -157,17 +157,17 @@ class enrol_notificationeabc_plugin extends enrol_plugin
         if (message_send($eventdata)) {
             $this->log .= get_string('succefullsend', 'enrol_notificationeabc', $strdata);
             if (empty($enrol->customchar3)) {
-                return true;
+                $res = true;
             }
         } else {
             $this->log .= get_string('failsend', 'enrol_notificationeabc', $strdata);
-            return false;
+            $res = false;
         }
         
         // Skillman: send 2nd message to receiver
         if (!empty($enrol) && !empty($enrol->customchar3)) {
             if (strpos($enrol->customchar3, ',')) {
-                $receivers_emails = explode(',', $data->customchar3);
+                $receivers_emails = explode(',', $enrol->customchar3);
             } else {
                 $receivers_emails = array($enrol->customchar3);
             }
@@ -190,32 +190,39 @@ class enrol_notificationeabc_plugin extends enrol_plugin
                     $receiver->alternatename = '';
                 }
 
-                $eventdata->userto = $receiver;
+                $eventdata->userto = $receiver->id;
+
+                $strdata->username = $receiver->email;
+                $strdata->coursename = $course->fullname;
 
                 if ($receiver->id <= 0) {
                     // not a Moodle user - direct email
-                    if (email_to_user($eventdata->userto, $eventdata->userfrom, $eventdata->subject, html_to_text($eventdata->fullmessagehtml), $eventdata->fullmessagehtml)) {
+                    if (email_to_user($receiver, $eventdata->userfrom, $eventdata->subject, html_to_text($eventdata->fullmessagehtml), $eventdata->fullmessagehtml)) {
                         $this->log .= get_string('succefullsendemail', 'enrol_notificationeabc', $strdata);
-                        return true;
+                        $res = true;
                     } else {
                         $this->log .= get_string('failsendemail', 'enrol_notificationeabc', $strdata);
-                        return false;
+                        $res = false;
                     }
                 } else {
                     // a Moodle user - direct Moodle message (than email)
                     if (message_send($eventdata)) {
                         $this->log .= get_string('succefullsend', 'enrol_notificationeabc', $strdata);
-                        return true;
+                        $res = true;
                     } else {
                         $this->log .= get_string('failsend', 'enrol_notificationeabc', $strdata);
-                        return false;
+                        $res = false;
                     }
                 }
             }
         }
  
         // default
-        return true;
+        if ($res) {
+            return true;
+        } else {
+            return false;
+        }
         
     } // End of function.
 
