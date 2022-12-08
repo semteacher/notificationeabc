@@ -145,12 +145,13 @@ class enrol_notificationeabc_plugin extends enrol_plugin
         $eventdata->component = 'enrol_notificationeabc';
         $eventdata->name = 'notificationeabc_enrolment';
         $eventdata->userfrom = $sender;
-        $eventdata->userto = $user->id;
+        $eventdata->userto = $user;
         $eventdata->subject = get_string('subject', 'enrol_notificationeabc');
         $eventdata->fullmessage = html_to_text($mensaje);
         $eventdata->fullmessageformat = FORMAT_HTML;
         $eventdata->fullmessagehtml = $mensaje;
-        $eventdata->smallmessage = '';
+        $eventdata->smallmessage = html_to_text($mensaje);
+
         $strdata = new stdClass();
         $strdata->username = $user->username;
         $strdata->coursename = $course->fullname;
@@ -190,30 +191,30 @@ class enrol_notificationeabc_plugin extends enrol_plugin
                     $receiver->alternatename = '';
                 }
 
-                $eventdata->userto = $receiver->id;
+                $eventdata->userto = $receiver;
 
                 $strdata->username = $receiver->email;
                 $strdata->coursename = $course->fullname;
 
-                //if ($receiver->id <= 0) {
+                if ($receiver->id <= 0) {
                     // not a Moodle user - direct email
-                    if (email_to_user($receiver, $eventdata->userfrom, $eventdata->subject, html_to_text($eventdata->fullmessagehtml), $eventdata->fullmessagehtml)) {
+                    if (email_to_user($eventdata->userto, $eventdata->userfrom, $eventdata->subject, html_to_text($eventdata->fullmessagehtml), $eventdata->fullmessagehtml)) {
                         $this->log .= get_string('succefullsendemail', 'enrol_notificationeabc', $strdata);
                         $res = true;
                     } else {
                         $this->log .= get_string('failsendemail', 'enrol_notificationeabc', $strdata);
                         $res = false;
                     }
-                //} else {
+                } else {
                     // a Moodle user - direct Moodle message (than email)
-                //    if (message_send($eventdata)) {
-                //        $this->log .= get_string('succefullsend', 'enrol_notificationeabc', $strdata);
-                //        $res = true;
-                //    } else {
-                //        $this->log .= get_string('failsend', 'enrol_notificationeabc', $strdata);
-                //        $res = false;
-                //    }
-                //}
+                    if (message_send($eventdata)) {
+                        $this->log .= get_string('succefullsend', 'enrol_notificationeabc', $strdata);
+                        $res = true;
+                    } else {
+                        $this->log .= get_string('failsend', 'enrol_notificationeabc', $strdata);
+                        $res = false;
+                    }
+                }
             }
         }
  
