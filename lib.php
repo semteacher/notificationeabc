@@ -173,8 +173,8 @@ class enrol_notificationeabc_plugin extends enrol_plugin
                 $receivers_emails = array($enrol->customchar3);
             }
             foreach ($receivers_emails as $receivers_email) {
-                // get Moodle user
-                $receiver = $DB->get_record('user', array('email' => $receivers_email)); 
+                // get Moodle user (but clean-up possible spaces in email 1st)
+                $receiver = $DB->get_record('user', array('email' => trim($receivers_email))); 
 
                 if (empty($receiver)) {
                     // construct Dummy receiver
