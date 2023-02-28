@@ -157,63 +157,76 @@ class enrol_notificationeabc_plugin extends enrol_plugin
         $strdata->coursename = $course->fullname;
         if (message_send($eventdata)) {
             $this->log .= get_string('succefullsend', 'enrol_notificationeabc', $strdata);
-            if (empty($enrol->customchar3)) {
-                $res = true;
-            }
+            $res = true;
         } else {
             $this->log .= get_string('failsend', 'enrol_notificationeabc', $strdata);
             $res = false;
         }
         
         // Skillman: send 2nd message to receiver
+        // Use local or global settings:
         if (!empty($enrol) && !empty($enrol->customchar3)) {
-            if (strpos($enrol->customchar3, ',')) {
-                $receivers_emails = explode(',', $enrol->customchar3);
+            $receivers_emails_str = $enrol->customchar3;
+        } else {
+            $receivers_emails_str = $this->get_config('emailreceiver');
+        }
+        // Process string if custom emails provided (on local or global level)
+        if (!empty($receivers_emails_str)) {
+            // Extract separate emails:
+            if (strpos($receivers_emails_str, ',')) {
+                $receivers_emails = explode(',', $receivers_emails_str);
             } else {
-                $receivers_emails = array($enrol->customchar3);
+                $receivers_emails = array($receivers_emails_str);
             }
             foreach ($receivers_emails as $receivers_email) {
-                // get Moodle user (but clean-up possible spaces in email 1st)
-                $receiver = $DB->get_record('user', array('email' => trim($receivers_email))); 
+                // Clean-up possible spaces in email 1st
+                $receivers_email = trim($receivers_email);
+                if (filter_var($receivers_email, FILTER_VALIDATE_EMAIL)) {
+                    // Get Moodle user if exist
+                    $receiver = $DB->get_record('user', array('email' => $receivers_email)); 
 
-                if (empty($receiver)) {
-                    // construct Dummy receiver
-                    $receiver = new \stdClass;
-                    $receiver->email = $receivers_email;
-                    $receiver->firstname = 'Enroll Notification';
-                    $receiver->lastname = 'Receiver';
-                    $receiver->maildisplay = true;
-                    $receiver->mailformat = 1; // HTML
-                    $receiver->id = -99; // not a Moodle user
-                    $receiver->firstnamephonetic = 'Enroll Notification';
-                    $receiver->lastnamephonetic = 'Receiver';
-                    $receiver->middlename = '';
-                    $receiver->alternatename = '';
-                }
+                    if (empty($receiver)) {
+                        // construct Dummy receiver
+                        $receiver = new \stdClass;
+                        $receiver->email = $receivers_email;
+                        $receiver->firstname = 'Enroll Notification';
+                        $receiver->lastname = 'Receiver';
+                        $receiver->maildisplay = true;
+                        $receiver->mailformat = 1; // HTML
+                        $receiver->id = -99; // not a Moodle user
+                        $receiver->firstnamephonetic = 'Enroll Notification';
+                        $receiver->lastnamephonetic = 'Receiver';
+                        $receiver->middlename = '';
+                        $receiver->alternatename = '';
+                    }
 
-                $eventdata->userto = $receiver;
+                    $eventdata->userto = $receiver;
 
-                $strdata->username = $receiver->email;
-                $strdata->coursename = $course->fullname;
+                    $strdata->username = $receiver->email;
+                    $strdata->coursename = $course->fullname;
 
-                if ($receiver->id <= 0) {
-                    // not a Moodle user - direct email
-                    if (email_to_user($eventdata->userto, $eventdata->userfrom, $eventdata->subject, html_to_text($eventdata->fullmessagehtml), $eventdata->fullmessagehtml)) {
-                        $this->log .= get_string('succefullsendemail', 'enrol_notificationeabc', $strdata);
-                        $res = true;
+                    if ($receiver->id <= 0) {
+                        // not a Moodle user - direct email
+                        if (email_to_user($eventdata->userto, $eventdata->userfrom, $eventdata->subject, html_to_text($eventdata->fullmessagehtml), $eventdata->fullmessagehtml)) {
+                            $this->log .= get_string('succefullsendemail', 'enrol_notificationeabc', $strdata);
+                            $res = true;
+                        } else {
+                            $this->log .= get_string('failsendemail', 'enrol_notificationeabc', $strdata);
+                            $res = false;
+                        }
                     } else {
-                        $this->log .= get_string('failsendemail', 'enrol_notificationeabc', $strdata);
-                        $res = false;
+                        // a Moodle user - direct Moodle message (than email)
+                        if (message_send($eventdata)) {
+                            $this->log .= get_string('succefullsend', 'enrol_notificationeabc', $strdata);
+                            $res = true;
+                        } else {
+                            $this->log .= get_string('failsend', 'enrol_notificationeabc', $strdata);
+                            $res = false;
+                        }
                     }
                 } else {
-                    // a Moodle user - direct Moodle message (than email)
-                    if (message_send($eventdata)) {
-                        $this->log .= get_string('succefullsend', 'enrol_notificationeabc', $strdata);
-                        $res = true;
-                    } else {
-                        $this->log .= get_string('failsend', 'enrol_notificationeabc', $strdata);
-                        $res = false;
-                    }
+                    $this->log .= ' failed to send to a custom email - '.$receivers_email.' is an invalid address';
+                    $res = false;
                 }
             }
         }
