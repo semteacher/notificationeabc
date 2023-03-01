@@ -155,6 +155,7 @@ class enrol_notificationeabc_plugin extends enrol_plugin
         $strdata = new stdClass();
         $strdata->username = $user->username;
         $strdata->coursename = $course->fullname;
+
         if (message_send($eventdata)) {
             $this->log .= get_string('succefullsend', 'enrol_notificationeabc', $strdata);
             $res = true;
@@ -170,6 +171,8 @@ class enrol_notificationeabc_plugin extends enrol_plugin
         } else {
             $receivers_emails_str = $this->get_config('emailreceiver');
         }
+        // Best wat for simple debugging:
+        //error_log('receivers_emails_str x is: ' . var_export($receivers_emails_str, true));
         // Process string if custom emails provided (on local or global level)
         if (!empty($receivers_emails_str)) {
             // Extract separate emails:
@@ -178,6 +181,8 @@ class enrol_notificationeabc_plugin extends enrol_plugin
             } else {
                 $receivers_emails = array($receivers_emails_str);
             }
+            // Best wat for simple debugging:
+            //error_log('receivers_emails is: ' . var_export($receivers_emails, true));
             foreach ($receivers_emails as $receivers_email) {
                 // Clean-up possible spaces in email 1st
                 $receivers_email = trim($receivers_email);
@@ -204,7 +209,9 @@ class enrol_notificationeabc_plugin extends enrol_plugin
 
                     $strdata->username = $receiver->email;
                     $strdata->coursename = $course->fullname;
-
+                    // Best wat for simple debugging:
+                    //error_log('eventdata->userto->email is: ' . var_export($eventdata->userto->email, true));
+                    //error_log('eventdata->fullmessagehtml is: ' . var_export($eventdata->fullmessagehtml, true));
                     if ($receiver->id <= 0) {
                         // not a Moodle user - direct email
                         if (email_to_user($eventdata->userto, $eventdata->userfrom, $eventdata->subject, html_to_text($eventdata->fullmessagehtml), $eventdata->fullmessagehtml)) {
@@ -213,6 +220,8 @@ class enrol_notificationeabc_plugin extends enrol_plugin
                         } else {
                             $this->log .= get_string('failsendemail', 'enrol_notificationeabc', $strdata);
                             $res = false;
+                            // Best wat for simple debugging:
+                            //error_log('error sending direct email in:' . var_export($strdata, true));
                         }
                     } else {
                         // a Moodle user - direct Moodle message (than email)
@@ -222,6 +231,8 @@ class enrol_notificationeabc_plugin extends enrol_plugin
                         } else {
                             $this->log .= get_string('failsend', 'enrol_notificationeabc', $strdata);
                             $res = false;
+                            // Best wat for simple debugging:
+                            //error_log('error sending Moodle message in:' . var_export($strdata, true));
                         }
                     }
                 } else {
